@@ -2,14 +2,13 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 import re
 
-# Replace 'YOUR_TOKEN' with your bot's API token
-TOKEN = "7864983451:AAF3WKVbfkcNjYNU01oCLXBk5sNZpkXzeus"
-BOT_USERNAME = "@moonfkingbot"  # e.g., @MathHelperBot
+TOKEN = "7864983451:AAF3WKVbfkcNjYNU01oCLXBk5sNZpkXzeus"  # Replace with your bot token
+BOT_USERNAME = "@moonfkingbot"  # Replace with your bot's username
 
-# Validate input to prevent code injection
 def safe_eval(expression):
-    # Allow only numbers, spaces, and + - * / .
-    if not re.match(r'^[\d\s+\-*/.]+$', expression):
+    # Regex to allow numbers, spaces, +, -, *, /, ., and parentheses ()
+    # Also enforce at least one operator or parenthesis
+    if not re.match(r'^(?=.*[+\-*/()])[\d\s+\-*/.()]+$', expression):
         return None
     try:
         return eval(expression)
@@ -17,18 +16,24 @@ def safe_eval(expression):
         return None
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Hi! Send me a math problem like '5+3' or '4*2'.")
+    await update.message.reply_text(
+        "Hi! Send me a math problem like `(5+3)*2` or `10/(4-2)`.\n\n"
+        "**Supported symbols**: `+`, `-`, `*`, `/`, `()`, and decimal numbers."
+    )
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text
+    text = update.message.text.strip()
+    
+    # Ignore messages starting with "/" (commands)
     if text.startswith('/'):
-        return  # Ignore other commands
-
+        return
+    
     result = safe_eval(text)
     if result is not None:
-        await update.message.reply_text(f"Result: {result}")
+        await update.message.reply_text(f"Result: `{result}`", parse_mode="MarkdownV2")
     else:
-        await update.message.reply_text("❌ Invalid input. Use numbers and + - * / only.")
+        # Don't reply at all if the input isn't a valid equation
+        return
 
 if __name__ == "__main__":
     app = Application.builder().token(TOKEN).build()
