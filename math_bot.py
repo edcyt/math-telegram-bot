@@ -2,7 +2,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 import re
 
-TOKEN = "7864983451:AAF3WKVbfkcNjYNU01oCLXBk5sNZpkXzeus"  # Replace with your bot token
+TOKEN = "7864983451:AAHU0caRv5k4CH9rpe5z9E-wcfMLDcLiaJk"  # Replace with your bot token
 BOT_USERNAME = "@moonfkingbot"  # Replace with your bot's username
 
 def safe_eval(expression):
