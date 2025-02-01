@@ -15,6 +15,10 @@ def safe_eval(expression):
     except:
         return None
 
+def format_number(number):
+    # Format numbers with commas (e.g., 1000 → 1,000)
+    return f"{number:,}"
+
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Hi! Send me a math problem like `(5+3)*2` or `10/(4-2)`.\n\n"
@@ -30,7 +34,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     result = safe_eval(text)
     if result is not None:
-        await update.message.reply_text(f"Result: `{result}`", parse_mode="MarkdownV2")
+        formatted_result = format_number(result)  # Format the result with commas
+        await update.message.reply_text(f"Result: `{formatted_result}`", parse_mode="MarkdownV2")
     else:
         # Don't reply at all if the input isn't a valid equation
         return
@@ -40,6 +45,4 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     print("Bot is running...")
-    app.run_polling(allowed_updates=[])  # Add this parameter
-
-
+    app.run_polling(allowed_updates=[])
