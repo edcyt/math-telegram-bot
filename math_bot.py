@@ -40,6 +40,6 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     print("Bot is running...")
-    app.run_polling()
+    app.run_polling(allowed_updates=[])  # Add this parameter
 
-app.run_polling(allowed_updates=[])  # Add this parameter
+
