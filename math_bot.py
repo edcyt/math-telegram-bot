@@ -1,14 +1,14 @@
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 import re
-import asyncio
+import os
+from aiohttp import web
 
-TOKEN = "7864983451:AAHU0caRv5k4CH9rpe5z9E-wcfMLDcLiaJk"  # Replace with your bot token
+TOKEN = os.getenv("7864983451:AAHU0caRv5k4CH9rpe5z9E-wcfMLDcLiaJk")  # Set this in Render's environment variables
 BOT_USERNAME = "@moonfkingbot"  # Replace with your bot's username
 
+# Math evaluation logic
 def safe_eval(expression):
-    # Regex to allow numbers, spaces, +, -, *, /, ., and parentheses ()
-    # Also enforce at least one operator or parenthesis
     if not re.match(r'^(?=.*[+\-*/()])[\d\s+\-*/.()]+$', expression):
         return None
     try:
@@ -17,44 +17,42 @@ def safe_eval(expression):
         return None
 
 def format_number(number):
-    # Format numbers with commas (e.g., 1000 → 1,000)
     return f"{number:,}"
 
+# Telegram bot handlers
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "Hi! Send me a math problem like `(5+3)*2` or `10/(4-2)`.\n\n"
-        "**Supported symbols**: `+`, `-`, `*`, `/`, `()`, and decimal numbers."
-    )
+    await update.message.reply_text("Hi! Send me math expressions like 2+2 or (5*3)/2.")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
-    
-    # Ignore messages starting with "/" (commands)
     if text.startswith('/'):
         return
     
     result = safe_eval(text)
     if result is not None:
-        formatted_result = format_number(result)  # Format the result with commas
-        await update.message.reply_text(f"Result: `{formatted_result}`", parse_mode="MarkdownV2")
+        formatted_result = format_number(result)
+        await update.message.reply_text(f"Result: {formatted_result}")
     else:
-        # Don't reply at all if the input isn't a valid equation
         return
 
-async def dummy_server():
-    # Create a dummy server that listens on port 8080
-    server = await asyncio.start_server(lambda r, w: None, port=8080)
-    await server.serve_forever()
+# Minimal HTTP server to satisfy Render's port check
+async def http_handler(request):
+    return web.Response(text="Bot is running")
+
+async def run_server():
+    app = web.Application()
+    app.router.add_get('/', http_handler)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, port=int(os.getenv("PORT", 8080)))
+    await site.start()
 
 if __name__ == "__main__":
-    app = Application.builder().token(TOKEN).build()
-    app.add_handler(CommandHandler("start", start_command))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    
-    # Start the dummy server alongside the bot
-    loop = asyncio.get_event_loop()
-    loop.create_task(dummy_server())
-    loop.create_task(app.run_polling(allowed_updates=[]))
-    
-    print("Bot is running...")
-    loop.run_forever()
+    # Start both the bot and HTTP server
+    bot_app = Application.builder().token(TOKEN).build()
+    bot_app.add_handler(CommandHandler("start", start_command))
+    bot_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    loop = bot_app.bot.get_updates_loop()
+    loop.run_until_complete(run_server())
+    bot_app.run_polling(allowed_updates=[])
