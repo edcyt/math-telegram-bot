@@ -1,6 +1,7 @@
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 import re
+import asyncio
 
 TOKEN = "7864983451:AAHU0caRv5k4CH9rpe5z9E-wcfMLDcLiaJk"  # Replace with your bot token
 BOT_USERNAME = "@moonfkingbot"  # Replace with your bot's username
@@ -40,9 +41,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Don't reply at all if the input isn't a valid equation
         return
 
+async def dummy_server():
+    # Create a dummy server that listens on port 8080
+    server = await asyncio.start_server(lambda r, w: None, port=8080)
+    await server.serve_forever()
+
 if __name__ == "__main__":
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    
+    # Start the dummy server alongside the bot
+    loop = asyncio.get_event_loop()
+    loop.create_task(dummy_server())
+    loop.create_task(app.run_polling(allowed_updates=[]))
+    
     print("Bot is running...")
-    app.run_polling(allowed_updates=[])
+    loop.run_forever()
