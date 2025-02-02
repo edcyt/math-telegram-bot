@@ -5,8 +5,8 @@ import os
 from aiohttp import web
 
 # Configuration
-TOKEN = os.getenv("TOKEN")  # Set in Render's environment variables
-BOT_USERNAME = "@YourBotUsername"  # Replace with your bot's actual username
+TOKEN = os.getenv("7864983451:AAFPsnMIwSp452DincK8iIp3b3seYkqktOU")  # Set in Render's environment variables
+BOT_USERNAME = "@moonfkingbot"  # Replace with your bot's actual username
 
 # Validate and calculate math expressions safely
 def safe_eval(expression):
