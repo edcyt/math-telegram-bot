@@ -4,27 +4,26 @@ import re
 import os
 from aiohttp import web
 
-TOKEN = os.getenv("TOKEN")
-if not TOKEN:
-    raise ValueError("TOKEN environment variable is missing or empty!")
-print(f"Using token: {TOKEN}")
-BOT_USERNAME = "@moonfkingbot"  # Replace with your bot's username
+# Configuration
+TOKEN = os.getenv("TOKEN")  # Set in Render's environment variables
+BOT_USERNAME = "@YourBotUsername"  # Replace with your bot's actual username
 
-# Math evaluation logic
+# Validate and calculate math expressions safely
 def safe_eval(expression):
-    if not re.match(r'^(?=.*[+\-*/()])[\d\s+\-*/.()]+$', expression):
+    if not re.match(r'^[\d\s+\-*/().,]+$', expression) or not any(op in expression for op in '+-*/()'):
         return None
     try:
         return eval(expression)
     except:
         return None
 
+# Format numbers with commas (e.g., 1000 → 1,000)
 def format_number(number):
     return f"{number:,}"
 
-# Telegram bot handlers
+# Telegram handlers
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Hi! Send me math expressions like 2+2 or (5*3)/2.")
+    await update.message.reply_text("🔢 Send me a math problem like *2+2* or *(5*3)/2*!", parse_mode="Markdown")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
@@ -33,14 +32,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     result = safe_eval(text)
     if result is not None:
-        formatted_result = format_number(result)
-        await update.message.reply_text(f"Result: {formatted_result}")
+        await update.message.reply_text(f"✅ Result: `{format_number(result)}`", parse_mode="MarkdownV2")
     else:
-        return
+        return  # Ignore invalid inputs
 
-# Minimal HTTP server to satisfy Render's port check
+# Minimal HTTP server for Render compatibility
 async def http_handler(request):
-    return web.Response(text="Bot is running")
+    return web.Response(text="Math Bot is running!")
 
 async def run_server():
     app = web.Application()
@@ -51,7 +49,7 @@ async def run_server():
     await site.start()
 
 if __name__ == "__main__":
-    # Start both the bot and HTTP server
+    # Start bot and HTTP server
     bot_app = Application.builder().token(TOKEN).build()
     bot_app.add_handler(CommandHandler("start", start_command))
     bot_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
