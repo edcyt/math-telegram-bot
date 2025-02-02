@@ -4,7 +4,7 @@ import re
 import os
 from aiohttp import web
 
-TOKEN = os.getenv("7864983451:AAHU0caRv5k4CH9rpe5z9E-wcfMLDcLiaJk")  # Set this in Render's environment variables
+TOKEN = os.getenv("7864983451:AAFPsnMIwSp452DincK8iIp3b3seYkqktOU")  # Set this in Render's environment variables
 BOT_USERNAME = "@moonfkingbot"  # Replace with your bot's username
 
 # Math evaluation logic
